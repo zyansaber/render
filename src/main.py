@@ -1,4 +1,3 @@
-
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # DON'T CHANGE THIS !!!
@@ -11,58 +10,57 @@ from src.models.user import User
 
 def create_app():
     app = Flask(__name__)
-    
+
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_change_in_production')
-    
-    # Use persistent database path for production environment
+
+    # ✅ Ensure persistent directory exists
+    os.makedirs("/data", exist_ok=True)
     db_path = os.path.join('/data', 'powerbi_portal.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
-    # ✅ Removed os.makedirs to avoid permission error
-    
+
     # Initialize database
     db.init_app(app)
-    
+
     # Register blueprints
     app.register_blueprint(context_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
-    
-    # Add template global variables
+
+    # Inject current time to templates
     @app.context_processor
     def inject_now():
         return {'now': datetime.utcnow()}
 
+    # Inject navigation pages
     @app.context_processor
     def inject_navigation():
         def get_user_navigation():
             from src.models.page import Page
             return Page.query.filter_by(is_active=True).order_by(Page.display_order).all()
         return dict(get_user_navigation=get_user_navigation)
-    
-    # Create database tables
+
+    # Create tables and default admin user
     with app.app_context():
         db.create_all()
-        # Create custom admin user
         admin = User.query.filter_by(username='zhihaiyan').first()
         if not admin:
             admin = User(username='zhihaiyan', email='zhihaiyan@example.com', is_admin=True)
             admin.set_password('abc')
             db.session.add(admin)
             db.session.commit()
-    
+
     # Error handling
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('errors/404.html'), 404
-    
+
     @app.errorhandler(500)
     def internal_server_error(e):
         return render_template('errors/500.html'), 500
-    
+
     return app
 
 app = create_app()
