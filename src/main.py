@@ -18,9 +18,9 @@ def create_app():
 
     # Use persistent database path
     # Set up persistent path from environment variable or fallback
-    db_path = os.environ.get("DB_PATH", os.path.join(os.getcwd(), "data", "powerbi_portal.db"))
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    "DATABASE_URL", "sqlite:///fallback.db"
+    )
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
