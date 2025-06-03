@@ -10,40 +10,40 @@ from src.models.user import User
 
 def create_app():
     app = Flask(__name__)
-    
+
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_change_in_production')
-    
+
     # Use persistent database path for production environment
     db_path = os.path.join('/tmp', 'powerbi_portal.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
+
     # Ensure the data directory exists
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    
+
     # Initialize database
     db.init_app(app)
-    
+
     # Register blueprints
     app.register_blueprint(context_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
-    
+
     # Add template global variables
     @app.context_processor
     def inject_now():
         return {'now': datetime.utcnow()}
 
     @app.context_processor
-def inject_navigation():
-    def get_user_navigation():
-        return [
-            {'id': 1, 'name': 'Dashboard'},
-            {'id': 2, 'name': 'Reports'}
-        ]
-    return dict(get_user_navigation=get_user_navigation)
+    def inject_navigation():
+        def get_user_navigation():
+            return [
+                {'id': 1, 'name': 'Dashboard'},
+                {'id': 2, 'name': 'Reports'}
+            ]
+        return dict(get_user_navigation=get_user_navigation)
 
     # Create database tables
     with app.app_context():
@@ -55,16 +55,16 @@ def inject_navigation():
             admin.set_password('abc')
             db.session.add(admin)
             db.session.commit()  # Explicitly commit the transaction
-    
+
     # Error handling
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('errors/404.html'), 404
-    
+
     @app.errorhandler(500)
     def internal_server_error(e):
         return render_template('errors/500.html'), 500
-    
+
     return app
 
 app = create_app()
