@@ -62,7 +62,7 @@
             
             {% for page in get_user_navigation() %}
             <li class="sidebar-item">
-                <a href="{{ url_for('main.view_page', page_id=page.id) }}" class="sidebar-link">
+                <a href="{{ url_for('main.view_page', page_id=page['id']) }}" class="sidebar-link">
                     <i class="fas fa-chart-line sidebar-icon"></i>
                     <span>{{ page.title }}</span>
                 </a>
