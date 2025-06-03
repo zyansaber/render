@@ -6,4 +6,4 @@ services:
     startCommand: gunicorn wsgi:app
     envVars:
       - key: DB_PATH
-        value: /tmp/mydatabase.sqlite
+        value: /data/powerbi_portal.db
