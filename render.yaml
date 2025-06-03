@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: powerbi-portal
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: DB_PATH
+        value: /data/powerbi.sqlite
