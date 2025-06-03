@@ -36,22 +36,15 @@ def create_app():
     def inject_now():
         return {'now': datetime.utcnow()}
 
-    # Add template global variables
     @app.context_processor
-    def inject_now():
-        return {'now': datetime.utcnow()}
-
-    @app.context_processor
-    def inject_navigation():
-      def get_user_navigation():
-          return [
+def inject_navigation():
+    def get_user_navigation():
+        return [
             {'id': 1, 'name': 'Dashboard'},
             {'id': 2, 'name': 'Reports'}
         ]
     return dict(get_user_navigation=get_user_navigation)
 
-
-    
     # Create database tables
     with app.app_context():
         db.create_all()
