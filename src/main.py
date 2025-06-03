@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # DON'T CHANGE T
 from flask import Flask, render_template, session, g
 from src.models import db
 from src.routes import auth_bp, main_bp, admin_bp, context_bp
+from src.models.page import Page
 from datetime import datetime
 from src.models.user import User
 
@@ -39,10 +40,11 @@ def create_app():
     @app.context_processor
     def inject_navigation():
         def get_user_navigation():
-            return [
-                {'id': 1, 'name': 'Dashboard'},
-                {'id': 2, 'name': 'Reports'}
-            ]
+            try:
+                pages = Page.query.filter_by(is_active=True).order_by(Page.display_order).all()
+                return [{'id': p.id, 'name': p.title} for p in pages]
+            except Exception:
+                return []
         return dict(get_user_navigation=get_user_navigation)
 
     # Create database tables
@@ -54,7 +56,7 @@ def create_app():
             admin = User(username='zhihaiyan', email='zhihaiyan@example.com', is_admin=True)
             admin.set_password('abc')
             db.session.add(admin)
-            db.session.commit()  # Explicitly commit the transaction
+            db.session.commit()
 
     # Error handling
     @app.errorhandler(404)
