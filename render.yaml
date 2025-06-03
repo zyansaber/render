@@ -7,3 +7,7 @@ services:
     envVars:
       - key: DB_PATH
         value: /data/powerbi_portal.db
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
