@@ -15,7 +15,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_change_in_production')
     
     # Use persistent database path for production environment
-    db_path = os.path.join('/data', 'powerbi_portal.db')
+    db_path = os.path.join('/tmp', 'powerbi_portal.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
