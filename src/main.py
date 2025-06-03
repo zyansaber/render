@@ -35,6 +35,22 @@ def create_app():
     @app.context_processor
     def inject_now():
         return {'now': datetime.utcnow()}
+
+    # Add template global variables
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}
+
+    @app.context_processor
+    def inject_navigation():
+        def get_user_navigation():
+            # 你可以根据用户身份返回不同菜单
+            return [
+                {'name': 'Home', 'url': '/'},
+                {'name': 'Profile', 'url': '/profile'},
+            ]
+        return dict(get_user_navigation=get_user_navigation)
+
     
     # Create database tables
     with app.app_context():
