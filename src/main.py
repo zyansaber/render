@@ -16,28 +16,22 @@ def create_app():
     # Secret key
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_change_in_production')
 
-    # Handle PostgreSQL URL correction (postgres -> postgresql)
+    # Database connection
     raw_db_url = os.environ.get("DATABASE_URL", "sqlite:///fallback.db")
     if raw_db_url.startswith("postgres://"):
         raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
-
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Initialize database
+    # Initialize DB
     db.init_app(app)
 
-    # Register blueprints
-    app.register_blueprint(context_bp)
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(admin_bp)
-
-    # Template globals
+    # Jinja global: current time
     @app.context_processor
     def inject_now():
         return {'now': datetime.utcnow()}
 
+    # Jinja global: navigation
     @app.context_processor
     def utility_functions():
         def get_user_navigation():
@@ -45,20 +39,34 @@ def create_app():
             return [{'id': p.id, 'name': p.title} for p in pages]
         return dict(get_user_navigation=get_user_navigation)
 
-    return app
+    # Register blueprints
+    app.register_blueprint(context_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(admin_bp)
 
-
-app = create_app()
-
-# Optional: Only for local one-time table creation
-if __name__ == '__main__':
+    # Auto-initialize DB tables and default admin if needed
     with app.app_context():
         db.create_all()
-        admin = User.query.filter_by(username='zhihaiyan').first()
-        if not admin:
+        if not User.query.filter_by(username='zhihaiyan').first():
             admin = User(username='zhihaiyan', email='zhihaiyan@example.com', is_admin=True)
             admin.set_password('abc')
             db.session.add(admin)
             db.session.commit()
 
+    # Error pages
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('errors/500.html'), 500
+
+    return app
+
+
+app = create_app()
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
