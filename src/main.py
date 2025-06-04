@@ -1,4 +1,3 @@
-
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # DON'T CHANGE THIS !!!
@@ -10,17 +9,18 @@ from datetime import datetime
 from src.models.user import User
 from src.models.page import Page
 
+
 def create_app():
     app = Flask(__name__)
 
-    # Configuration
+    # Secret key
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key_change_in_production')
 
-    # Use persistent database path
-    # Set up persistent path from environment variable or fallback
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    "DATABASE_URL", "sqlite:///fallback.db"
-    )
+    # Handle PostgreSQL URL correction (postgres -> postgresql)
+    raw_db_url = os.environ.get("DATABASE_URL", "sqlite:///fallback.db")
+    if raw_db_url.startswith("postgres://"):
+        raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -45,7 +45,13 @@ def create_app():
             return [{'id': p.id, 'name': p.title} for p in pages]
         return dict(get_user_navigation=get_user_navigation)
 
-    # Create admin user and tables
+    return app
+
+
+app = create_app()
+
+# Optional: Only for local one-time table creation
+if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         admin = User.query.filter_by(username='zhihaiyan').first()
@@ -55,18 +61,4 @@ def create_app():
             db.session.add(admin)
             db.session.commit()
 
-    # Error handlers
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('errors/404.html'), 404
-
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        return render_template('errors/500.html'), 500
-
-    return app
-
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
