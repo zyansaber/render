@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # DON'T CHANGE T
 
 from flask import Flask, render_template, session, g
 from src.models import db
-from src.routes import auth_bp, main_bp, admin_bp, context_bp
+from src.routes import auth_bp, main_bp, admin_bp, context_bp, upload_bp
 from datetime import datetime
 from src.models.user import User
 from src.models.page import Page
@@ -26,6 +26,10 @@ def create_app():
     # Initialize DB
     db.init_app(app)
 
+    # File uploads configuration
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads')
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
     # Jinja global: current time
     @app.context_processor
     def inject_now():
@@ -44,6 +48,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(upload_bp)
 
     # Auto-initialize DB tables and default admin if needed
     with app.app_context():
