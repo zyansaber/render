@@ -71,6 +71,13 @@
             </li>
             {% endfor %}
 
+            <li class="sidebar-item">
+                <a href="{{ url_for('upload.uploads') }}" class="sidebar-link">
+                    <i class="fas fa-upload sidebar-icon"></i>
+                    <span>Uploads</span>
+                </a>
+            </li>
+
             {% if session.is_admin %}
             <li class="sidebar-item">
                 <a href="{{ url_for('admin.list_pages') }}" class="sidebar-link">
